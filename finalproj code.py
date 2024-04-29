@@ -12,14 +12,24 @@ max_platforms = 10
 scroll_thres= 200
 scroll= 0
 bg_scroll = 0
+game_over=False
+score=0
 
-
-
+font1 = pygame.font.SysFont("Lucida Sans",20)
+font2= pygame.font.SysFont("Lucida Sans,",10)
 
 white=(255,255,255)
+black = (200,200,200)                           
+            
 bob_image = pygame.image.load('kitty.png').convert_alpha()
-bg_image=pygame.image.load('bg2.webp').convert_alpha()
+bg_image=pygame.image.load('bg.webp').convert_alpha()
 platform_image=pygame.image.load('wood2.png').convert_alpha()
+def draw_text(text,font,text_col,x,y):
+    img= font.render(text,True,text_col)
+    screen.blit(img,(x,y))
+def text_panel():
+    pygame.draw.line(screen,white,(0,30),(screen_width, 30),2)
+    draw_text("score: "+str(score),font2,white,0,0)
 
 def draw_bg (bg_scroll):
     screen.blit(bg_image,(0,0+bg_scroll))
@@ -65,9 +75,7 @@ class player():
                         dy=0
                         self.vel_y = -20
                         
-        if self.rect.bottom+dy>screen_height:
-            dy = 0
-            self.vel_y = -10
+        
         if self.rect.top <= scroll_thres:
             if self.vel_y<0:
                 scroll = -dy
@@ -93,20 +101,18 @@ class Platform(pygame.sprite.Sprite):
     def update(self, scroll):
         self.rect.y +=scroll
 
-
+        if self.rect.top > screen_height:
+            self.kill()
 
 
 
             
 bob = player(screen_width//2,screen_height-150)
 platform_group= pygame.sprite.Group()
-for p in range(max_platforms):
-    p_w = random.randint(40,60)
-    p_x = random.randint(0,screen_width-p_w)
-    p_y = p * random.randint(50,120)
-    platform = Platform(p_x,p_y, p_w)
-    platform_group.add(platform)
 
+
+platform = Platform(screen_width//2, screen_height-10,100)
+platform_group.add(platform)
         
 
 
@@ -124,20 +130,54 @@ for p in range(max_platforms):
 run = True
 while run:
     clock.tick(FPS)
-    
-    scroll = bob.move()
-    bg_scroll += scroll
-    draw_bg(scroll)
-    
-    if bg_scroll>=600:
-        bg_scroll = 0
-    draw_bg(bg_scroll)
-    pygame.draw.line(screen, white,(0,scroll_thres),(screen_width,scroll_thres))
-    platform_group.update(scroll)
-    platform_group.draw(screen)
-    
-##    screen.blit(bg_image,(0,0))
-    bob.draw()
+    if game_over ==False:
+        scroll = bob.move()
+        bg_scroll += scroll
+        draw_bg(scroll)
+        
+        if bg_scroll>=600:
+            bg_scroll = 0
+        draw_bg(bg_scroll)
+
+        if len(platform_group)<max_platforms:
+            p_w = random.randint(40,60)
+            p_x = random.randint(0,screen_width-p_w)
+            p_y = platform.rect.y -random.randint(80,120)
+            platform=Platform(p_x,p_y,p_w)
+            platform_group.add(platform)
+            
+        
+            
+        platform_group.update(scroll)
+        if scroll>0:
+            score +=scroll
+        
+        
+
+        
+        platform_group.draw(screen)
+        
+    ##    screen.blit(bg_image,(0,0))
+        bob.draw()
+        text_panel()
+        if bob.rect.top>screen_height:
+            game_over = True
+    else:
+        draw_text("GAE<MEVPER!",font1,white,130,200)
+        draw_text("pres space to play again,",font2,black,40,200)
+        key = pygame.key.get_pressed()
+        if key[pygame.K_SPACE]:
+            game_over=False
+            score= 0
+            scroll = 0
+            bob.rect.center = (screen_width//2,screen_height-150)
+            platform_group.empty()
+        
+            platform = Platform(screen_width//2, screen_height-10,100)
+            platform_group.add(platform)
+            
+
+            
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run=False
