@@ -128,7 +128,6 @@ while run:
     scroll = bob.move()
     bg_scroll += scroll
     draw_bg(scroll)
-    
     if bg_scroll>=600:
         bg_scroll = 0
     draw_bg(bg_scroll)
